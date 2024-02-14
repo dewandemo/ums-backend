@@ -7,12 +7,16 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
         stage('Build') {
             steps {
                 // Get some code from a GitHub repository
-                git credentialsId: 'b2aa0f55-7b59-40bd-b4a1-6e659c78d177', 
-                url: 'https://github.com/dewandemo/ums-backend'
-
+                git branch: 'main', credentialsId: 'b2aa0f55-7b59-40bd-b4a1-6e659c78d177', url: 'https://github.com/dewandemo/ums-backend'
                 // Run Maven on a Unix agent.
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
             }
