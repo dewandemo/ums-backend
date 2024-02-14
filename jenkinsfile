@@ -45,6 +45,9 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'dockercreds', variable: 'dockercreds')]) {
                         sh 'docker login https://index.docker.io -u dewandemo -p ${dockercreds}'
+                        sh 'docker build -t dewandemo/ums-backend:${BUILD_NUMBER} .'
+                        sh 'docker tag dewandemo/ums-backend:${BUILD_NUMBER} harbor.k3s-vm-sandbox.q868zeoljo42.instruqt.io/ums-backend/ums-backend:${BUILD_NUMBER}'
+                        sh 'docker push harbor.k3s-vm-sandbox.q868zeoljo42.instruqt.io/ums-backend/ums-backend:${BUILD_NUMBER}'
                     }
                 }
             }
