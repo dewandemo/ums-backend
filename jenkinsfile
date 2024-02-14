@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M3"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                git credentialsId: 'b2aa0f55-7b59-40bd-b4a1-6e659c78d177', 
+                url: 'https://github.com/dewandemo/ums-backend'
+
+                // Run Maven on a Unix agent.
+                sh "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+        }
+
+        stage('Test') {
+            parallel {
+                stage('Run Mock Test 1') {
+                    steps {
+                        // Run a mock test (replace this with your actual test command)
+                        sh "echo 'Running Mock Test 1'"
+                    }
+                }
+                stage('Run Mock Test 2') {
+                    steps {
+                        // Run another mock test (replace this with your actual test command)
+                        sh "echo 'Running Mock Test 2'"
+                    }
+                }
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                // Build Docker image
+                script {
+                    withCredentials([string(credentialsId: 'dockercreds', variable: 'dockercreds')]) {
+                        sh 'docker login https://index.docker.io -u dewandemo -p ${dockercreds}'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                // Publish JUnit test results
+                junit '**/target/surefire-reports/TEST-*.xml'
+            }
+        }
+        unstable {
+            script {
+                // Publish JUnit test results even if the build is unstable
+                junit '**/target/surefire-reports/TEST-*.xml'
+            }
+        }
+        // Archive the jar file
+        always {
+            archiveArtifacts 'target/*.jar'
+        }
+    }
+}
