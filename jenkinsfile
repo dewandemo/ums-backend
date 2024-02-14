@@ -22,18 +22,18 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Static Code Analysis') {
             parallel {
-                stage('Run Mock Test 1') {
+                stage('Checkstyle') {
                     steps {
-                        // Run a mock test (replace this with your actual test command)
-                        sh "echo 'Running Mock Test 1'"
+                        // Run Checkstyle
+                        sh "mvn checkstyle:check"
                     }
                 }
-                stage('Run Mock Test 2') {
+                stage('OWASP Dependency-Check') {
                     steps {
-                        // Run another mock test (replace this with your actual test command)
-                        sh "echo 'Running Mock Test 2'"
+                        // Run OWASP Dependency-Check
+                        sh "mvn org.owasp:dependency-check-maven:check"
                     }
                 }
             }
@@ -47,7 +47,22 @@ pipeline {
                 }
             }
         }
-
+        
+        stage('Code Coverage') {
+            steps {
+                recordCoverage(
+                    tools: [[parser: 'JACOCO']],
+                    id: 'jacoco', 
+                    name: 'JaCoCo Coverage',
+                    sourceCodeRetention: 'EVERY_BUILD',
+                    qualityGates: [
+                        [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
+                        [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
+                    ]
+                )
+            }
+        }
+        
         stage('Build and Push Docker Image') {
             steps {
                 // Build Docker image
