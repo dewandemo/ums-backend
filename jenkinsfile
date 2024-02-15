@@ -16,7 +16,7 @@ pipeline {
         stage('Build') {
             steps {
                 // Get some code from a GitHub repository
-                git branch: 'main', credentialsId: 'coderepocreds', url: 'https://gitness.k3s-vm-sandbox.5y24ytfhow29.instruqt.io/git/my_project/my-backend-service.git'
+                git branch: 'main', credentialsId: 'coderepocreds', url: 'https://gitness.k3s-vm-sandbox.bclumswvx3it.instruqt.io/git/my_project/my-backend-service.git'
                 // Run Maven on a Unix agent.
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
             }
@@ -25,6 +25,9 @@ pipeline {
         stage('Static Code Analysis') {
             parallel {
                 stage('Checkstyle') {
+                    when {
+                expression { return params.RUN_CHECKSTYLE == 'true' }
+            }
                     steps {
                         // Run Checkstyle
                         sh "mvn checkstyle:check"
@@ -68,10 +71,10 @@ pipeline {
                 // Build Docker image
                 script {
                     withCredentials([string(credentialsId: 'imagerepocreds', variable: 'imagerepocreds')]) {
-                        sh 'docker login harbor.k3s-vm-sandbox.5y24ytfhow29.instruqt.io -u admin -p ${imagerepocreds}'
+                        sh 'docker login harbor.k3s-vm-sandbox.bclumswvx3it.instruqt.io -u admin -p ${imagerepocreds}'
                         sh 'docker build -t dewandemo/ums-backend:${BUILD_NUMBER} .'
-                        sh 'docker tag dewandemo/ums-backend:${BUILD_NUMBER} harbor.k3s-vm-sandbox.5y24ytfhow29.instruqt.io/ums-backend/ums-backend:${BUILD_NUMBER}'
-                        sh 'docker push harbor.k3s-vm-sandbox.5y24ytfhow29.instruqt.io/ums-backend/ums-backend:${BUILD_NUMBER}'
+                        sh 'docker tag dewandemo/ums-backend:${BUILD_NUMBER} harbor.k3s-vm-sandbox.bclumswvx3it.instruqt.io/ums-backend/ums-backend:${BUILD_NUMBER}'
+                        sh 'docker push harbor.k3s-vm-sandbox.bclumswvx3it.instruqt.io/ums-backend/ums-backend:${BUILD_NUMBER}'
                     }
                 }
             }
